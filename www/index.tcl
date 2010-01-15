@@ -19,6 +19,7 @@ ad_page_contract {
     {category_id ""}
 }
 
+
 # ------------------------------------------------------------
 # Category Consistency Checker
 # ------------------------------------------------------------
@@ -81,30 +82,12 @@ set profile_categories_without_group_sql "
 
 db_foreach crm_conf_errors $profile_categories_without_group_sql {
 
-    set ttt {
    lappend errors "<li>
    There is no category '$category' of category type '$category_type'.<br>
    To fix this issue, please go to Admin - Categories - '$category_type'
    and add a category '$category'.<br>
    Then please go to Contacts - Admin and click on 'List' next to '$category'."
-    }
 }
-
-
-# Check for missing "list" categories
-
-foreach otype {im_company im_office person} {
-    set exists_p [ams::list::exists_p -object_type $otype -list_name $otype]
-    if {!$exists_p} {
-	set category_type [db_string cattype "select type_category_type from acs_object_types where object_type = :otype" -default "undefined"]
-	lappend errors "<li>
-	   There is no category '$otype' of category type '$category_type'.<br>
-	   To fix this issue, please go to Admin - Categories - '$category_type'
-	   and add a category '$otype'.<br>
-	   Then please go to Contacts - Admin and click on 'List' next to '$otype'."
-    }
-}
-
 
 
 if {{} != $errors} {
@@ -154,7 +137,7 @@ if { [exists_and_not_null search_id] } {
 set user_id [ad_conn user_id]
 set package_id [ad_conn package_id]
 
-set valid_page_sizes [list 25 50 100 500 2000 10000]
+set valid_page_sizes [list 25 50 100 500]
 if { ![exists_and_not_null page_size] || [lsearch $valid_page_sizes $page_size] < 0 } {
     set page_size [parameter::get -boolean -parameter "DefaultPageSize" -default "50"]
 }

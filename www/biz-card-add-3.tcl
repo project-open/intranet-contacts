@@ -22,20 +22,13 @@ ad_page_contract {
 		List of objects to create using this page. We will also
 		create a link between these object types.
 		Example: im_company + person => + company-person-membership
-        @param profile
-    		One of the "profile" group_ids in ]po[ including:
-		Employee, Freelance, Customer.
 } {
     person_id:optional
-    {first_names ""}
-    {last_name ""}
-    {company_name ""}
-    {company_path ""}
-    {office_name ""}
-    {office_path ""}
-    {email ""}
-    {profile 0}
-    {form_mode "edit"}
+    { first_names "" }
+    { last_name "" }
+    { company_name "" }
+    { email "" }
+    {form_mode "edit" }
     {return_url ""}
 }
 
@@ -48,12 +41,6 @@ set context [list $title]
 set current_user_id [ad_maybe_redirect_for_registration]
 
 
-# Set default variables
-if {"" == $company_path} { regsub -all {[^a-zA-Z0-9]} [string trim [string tolower $company_name]] "_" company_path}
-if {"" == $office_path} { set office_path "${company_path}_main_office" }
-if {"" == $office_name} { set office_name "$company_name [lang::message::lookup "" intranet-core.Main_Office {Main Office}]" }
-
-
 # --------------------------------------------------
 # Environment information for the rest of the page
 
@@ -62,15 +49,8 @@ set package_url [ad_conn package_url]
 set user_id [ad_conn user_id]
 set peeraddr [ad_conn peeraddr]
 
-
-# --------------------------------------------------
-# Determine company type as a function of user type
-
-set default_company_type_id [im_company_type_customer]
-if {$profile == [im_profile_customers]} { set default_company_type_id [im_company_type_customer] }
-if {$profile == [im_profile_partners]} { set default_company_type_id [im_company_type_partner] }
-if {$profile == [im_profile_freelancers]} { set default_company_type_id [im_company_type_provider] }
-if {$profile == [im_profile_employees]} { set default_company_type_id [im_company_type_internal] }
+# Normalized company_path
+regsub -all {[^a-zA-Z0-9]} [string trim [string tolower $company_name]] "_" company_path
 
 
 # ------------------------------------------------------------------
@@ -94,7 +74,6 @@ ad_form \
 	person_id:key
 	{company_id:text(hidden)}
 	{office_id:text(hidden)}
-	{profile:text(hidden)}
     }
 
 
@@ -105,31 +84,17 @@ ad_form \
 set form_id "company"
 set object_type "im_company"
 
-# Lookup the category representing the category for the
-# user group. 
-set person_subtype_id [db_string subtype "select category_id from im_categories where category_type = 'Intranet User Type' and aux_int1 = :profile" -default ""]
-
-template::form::section -legendtext asdf $form_id [lang::message::lookup "" intranet-core.Person Person]
-
-im_dynfield::append_attributes_to_form \
-    -object_type "party" \
-    -form_id $form_id \
-    -page_url "/intranet-contacts/biz-card-add" 
-
 im_dynfield::append_attributes_to_form \
     -object_type "person" \
     -form_id $form_id \
-    -page_url "/intranet-contacts/biz-card-add" \
-    -object_subtype_id $person_subtype_id
+    -page_url "/intranet-contacts/biz-card-add" 
 
-template::form::section -legendtext sdfg $form_id [lang::message::lookup "" intranet-core.Company Company]
 
 im_dynfield::append_attributes_to_form \
     -object_type "im_company" \
     -form_id $form_id \
     -page_url "/intranet-contacts/biz-card-add" 
 
-template::form::section -legendtext dfgh $form_id [lang::message::lookup "" intranet-core.Office Office]
 
 im_dynfield::append_attributes_to_form \
     -object_type "im_office" \
@@ -139,15 +104,15 @@ im_dynfield::append_attributes_to_form \
 
 template::element::set_value $form_id first_names $first_names
 template::element::set_value $form_id last_name $last_name
-catch { template::element::set_value $form_id email $email }
+catch { template::element::set_value $form_id email email }
 template::element::set_value $form_id company_name $company_name
 template::element::set_value $form_id company_path $company_path
 
-template::element::set_value $form_id company_type_id $default_company_type_id
+template::element::set_value $form_id company_type_id [im_company_type_customer]
 template::element::set_value $form_id company_status_id [im_company_status_active]
 
-template::element::set_value $form_id office_name $office_name
-template::element::set_value $form_id office_path $office_path
+template::element::set_value $form_id office_name "$company_name [lang::message::lookup "" intranet-core.Main_Office Main Office]"
+template::element::set_value $form_id office_path "${company_path}_main_office"
 
 template::element::set_value $form_id office_type_id [im_office_type_main]
 template::element::set_value $form_id office_status_id [im_office_status_active]
@@ -160,7 +125,7 @@ ad_form -extend -name $form_id -new_request {
     set company_id [im_new_object_id]
     set office_id [im_new_object_id]
 
-    set company_type_id $default_company_type_id
+    set company_type_id [im_company_type_customer]
     set company_status_id [im_company_status_active]
     set office_type_id [im_office_type_main]
 
@@ -194,12 +159,12 @@ ad_form -extend -name $form_id -new_request {
 
     if { $exists_p } {
 	incr exception_count
-	append errors "<li>[lang::message::lookup "" intranet-contacts.Company_path_exists "The company path '%company_path%' already exists."]"
+	append errors "  <li>[_ intranet-core._The]"
     }
     
     if { [exists_and_not_null errors] } {
 	ad_return_complaint $exception_count "<ul>$errors</ul>"
-	ad_script_abort
+	return
     }
     
 
@@ -224,7 +189,7 @@ ad_form -extend -name $form_id -new_request {
 	if {!$write} {
 	    ad_return_complaint "[_ intranet-core.lt_Insufficient_Privileg]" "
             <li>[_ intranet-core.lt_You_dont_have_suffici]"
-	    ad_script_abort
+	    return
 	}
 	
     } else {
@@ -232,7 +197,7 @@ ad_form -extend -name $form_id -new_request {
 	if {![im_permission $user_id add_companies]} {
 	    ad_return_complaint "[_ intranet-core.lt_Insufficient_Privileg]" "
             <li>[_ intranet-core.lt_You_dont_have_suffici]"
-	    ad_script_abort
+	    return
 	}
 	
     }
@@ -245,15 +210,10 @@ ad_form -extend -name $form_id -new_request {
 	select	person_id
 	from	persons
 	where	lower(trim(first_names)) = lower(trim(:first_names)) and
-		lower(trim(last_name)) = lower(trim(:last_name))
+		lower(trim(last_name)) = lower(trim(:last_name)
     " -default ""]
 
     if {![info exists email]} { set email "" }
-    if {![info exists username]} { set username [string tolower $email] }
-    if {![info exists screen_name]} { set screen_name "$first_names $last_name" }
-    if {![info exists url]} { set url "" }
-    set secret_question ""
-    set secret_answer ""
 
     if {"" == $user_id} {
 
@@ -265,7 +225,7 @@ ad_form -extend -name $form_id -new_request {
 			set view_similar_user_link "<A href=/intranet/users/view?user_id=$similar_user>[_ intranet-core.user]</A>"
 			ad_return_complaint 1 "<li><b>[_ intranet-core.Duplicate_UserB]<br>
         	        [_ intranet-core.lt_There_is_already_a_vi]<br>"
-			ad_script_abort
+			return
 	    }
 
 	    if {![info exists password] || [empty_string_p $password]} {
@@ -273,6 +233,7 @@ ad_form -extend -name $form_id -new_request {
 		set password_confirm $password
 	    }
 
+	    ns_log Notice "/users/new: Before auth::create_user"
 	    array set creation_info [auth::create_user \
 					 -user_id $user_id \
 					 -verify_password_confirm \
@@ -287,39 +248,12 @@ ad_form -extend -name $form_id -new_request {
 					 -secret_question $secret_question \
 					 -secret_answer $secret_answer]
 
-	    # A successful creation_info looks like:
-	    # username zahir@zunder.com account_status ok creation_status ok 
-	    # generated_pwd_p 0 account_message {} element_messages {} 
-	    # creation_message {} user_id 302913 password D6E09A4E9
-
-	    set creation_status "error"
-	    if {[info exists creation_info(creation_status)]} { set creation_status $creation_info(creation_status)}
-	    if {"ok" != [string tolower $creation_status]} {
-		ad_return_complaint 1 "<b>[lang::message::lookup "" intranet-contacts.Error_creating_user "Error creating new user"]</b>:<br>
-		[lang::message::lookup "" intranet-contacts.Error_creating_user_status "Status"]: $creation_status<br>
-		<pre>\n$creation_info(creation_message)\n$creation_info(element_messages)</pre>
-		"
-		ad_script_abort
-	    }
-
-	    # Extract the user_id from the creation info
-	    set user_id $creation_info(user_id)
-
 	    # Update creation user to allow the creator to admin the user
 	    db_dml update_creation_user_id "
 		update acs_objects
 		set creation_user = :current_user_id
 		where object_id = :user_id
 	    "
-
-	    # Add the user to a group.
-	    # Check whether the current_user_id has the right to add the guy to the group:
-	    set managable_profiles [im_profile::profile_options_managable_for_user $current_user_id]
-	    foreach profile_tuple $managable_profiles {
-		set profile_name [lindex $profile_tuple 0]
-		set profile_id [lindex $profile_tuple 1]
-		if {$profile == $profile_id} { im_profile::add_member -profile_id $profile -user_id $user_id }
-	    }
 
 	} else {
 
@@ -364,16 +298,20 @@ ad_form -extend -name $form_id -new_request {
 		"
 	    }
 
+
+	    ns_log Notice "/users/new: person::update -person_id=$user_id -first_names=$first_names -last_name=$last_name"
 	    person::update \
 		-person_id $user_id \
 		-first_names $first_names \
 		-last_name $last_name
 	    
+	    ns_log Notice "/users/new: party::update -party_id=$user_id -url=$url -email=$email"
 	    party::update \
 		-party_id $user_id \
 		-url $url \
 		-email $email
 	    
+	    ns_log Notice "/users/new: acs_user::update -user_id=$user_id -screen_name=$screen_name"
 	    acs_user::update \
 		-user_id $user_id \
 		-screen_name $screen_name \
@@ -381,7 +319,6 @@ ad_form -extend -name $form_id -new_request {
 	}
 
         # Add the user to some companies or projects
-        set also_add_to_biz_object [list]
         array set also_add_hash $also_add_to_biz_object
         foreach oid [array names also_add_hash] {
 	    set object_type [db_string otype "select object_type from acs_objects where object_id=:oid"]
@@ -416,15 +353,6 @@ ad_form -extend -name $form_id -new_request {
 	}
 
 
-	    # Add the user to a group.
-	    # Check whether the current_user_id has the right to add the guy to the group:
-	    set managable_profiles [im_profile::profile_options_managable_for_user $current_user_id]
-	    foreach profile_tuple $managable_profiles {
-		set profile_name [lindex $profile_tuple 0]
-		set profile_id [lindex $profile_tuple 1]
-		if {$profile == $profile_id} { im_profile::add_member -profile_id $profile -user_id $user_id }
-	    }
-
 	# TSearch2: We need to update "persons" in order to trigger the TSearch2
 	# triggers
 	db_dml update_persons "
@@ -432,6 +360,31 @@ ad_form -extend -name $form_id -new_request {
 		set first_names = first_names
 		where person_id = :user_id
         "
+
+	ns_log Notice "/users/new: finished big IF clause"
+
+	
+        set membership_del_sql "
+        select
+                r.rel_id
+        from
+                acs_rels r,
+                acs_objects o
+        where
+                object_id_two = :user_id
+                and object_id_one = :profile_id
+                and r.object_id_one = o.object_id
+                and o.object_type = 'im_profile'
+                and rel_type = 'membership_rel'
+        "
+
+
+
+
+
+
+
+
 
     
     # -----------------------------------------------------------------
@@ -460,6 +413,9 @@ ad_form -extend -name $form_id -new_request {
 	    # add users to the office as 
 	    set role_id [im_biz_object_role_office_admin]
 	    im_biz_object_add_role $user_id $main_office_id $role_id
+	    
+	    ns_log Notice "/companies/new-2: main_office_id=$main_office_id"
+	    
 	    
 	    # Now create the company with the new main_office:
 	    set company_id [company::new \
@@ -504,9 +460,6 @@ ad_form -extend -name $form_id -new_request {
 
     if {![info exists contract_value]} { set contract_value "" }
     if {![info exists billable_p]} { set billable_p "" }
-    if {![info exists start_date]} { set start_date "" }
-    if {![info exists manager_id]} { set manager_id "" }
-    if {![info exists note]} { set note "" }
     
     set update_sql "
 		update im_companies set
@@ -521,6 +474,7 @@ ad_form -extend -name $form_id -new_request {
 			contract_value		= :contract_value,
 			site_concept		= :site_concept,
 			manager_id		= :manager_id,
+			billable_p		= :billable_p,
 			note			= :note
 		where
 			company_id = :company_id
@@ -546,11 +500,13 @@ ad_form -extend -name $form_id -new_request {
     set form_id "company"
     set object_type "im_company"
     
+    ns_log Notice "companies/new-2: before append_attributes_to_form"
     im_dynfield::append_attributes_to_form \
 	-object_type im_company \
 	-form_id company \
 	-object_id $company_id
     
+    ns_log Notice "companies/new-2: before attribute_store"
     im_dynfield::attribute_store \
 	-object_type $object_type \
 	-object_id $company_id \

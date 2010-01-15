@@ -73,6 +73,12 @@ ad_proc -public contacts::install::package_install {
 			 [list note "#intranet-core.Note#" 15 textarea_small_nospell ""] \
     ]
 
+    set ttt {
+			 [list landlord "#intranet-core.Landlord#" 13 textarea_small_nospell ""] \
+			 [list security "#intranet-core.Security#" 14 textarea_small_nospell ""] \
+
+    }
+
     set im_employee_list [list [list department_id "#intranet-cost.Department#" 1 "departments" "1"] \
         [list supervisor_id "#intranet-hr.Supervisor#" 2 "supervisors" "1"] \
         [list availability "#intranet-hr.Availability_#" 3 "integer" "1"] \
@@ -92,6 +98,13 @@ ad_proc -public contacts::install::package_install {
         [list signed_nda_p "#intranet-hr.NDA_Signed#" 20 "checkbox" ""] \
     ]
 
+    # fraber 090305 start_date and end_date are characteristics of repeating_cost
+    # associated with the emplolyee's contract, not the im_employees table itself.
+    set ttt {
+        [list start_date "#intranet-hr.Start_date#" 16 "date" ""] \
+        [list end_date "#intranet-hr.End_date#" 17 "date" ""] \
+    }
+    
     # create the lists
     foreach type_list [list [list im_company_list im_company im_companies] [list im_office_list im_office im_offices] [list person_list person users_contact] [list im_employee_list person im_employees]] {
 	    # Create a new category for this list with the same name
@@ -103,8 +116,8 @@ ad_proc -public contacts::install::package_install {
 	
 	    set exists_p [ams::list::exists_p -object_type $object_type -list_name $object_type]
 	    if {!$exists_p} {
-	        ns_log Error "contacts::install::package_install: List '$object_type' does not exist."
-	        continue
+	        ns_log Error [lang::message::lookup "" intranet-dynfield.Unable_to_create_AMS_list "Unable to create AMS List"]
+	        ad_script_abort
 	    } else {
 	        set list_id [ams::list::get_list_id -object_type "$object_type" -list_name "$object_type"]
 		foreach element [set $object_list] {
