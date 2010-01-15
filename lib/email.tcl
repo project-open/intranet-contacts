@@ -281,12 +281,6 @@ ad_form -action $action \
 	foreach party_id $to {
             # Get the party
             
-	    set exists_in_cc_users_p [db_string exist_in_cc "select count(*) from cc_users where user_id = :party_id"]
-	    if {!$exists_in_cc_users_p} { 
-		ns_log Notice "Not SENDING to recipients '$party_id': Party not in cc_users"
-		continue 
-	    }
-
 	    set party [::im::dynfield::Class get_instance_from_db -id $party_id]
 	    
 	    set values [list]
@@ -310,22 +304,18 @@ ad_form -action $action \
 		}
 		
 		ns_log Notice "SENDING Recipients: $party_id"
-
-		if {[catch {
-		    acs_mail_lite::send \
-			-to_addr [$party email] \
-			-cc_addr $cc_list \
-			-bcc_addr $bcc_list \
-			-from_addr "$from_addr" \
-			-reply_to "$reply_to_addr" \
-			-subject "$interpol_subject" \
-			-body "$interpol_content_body" \
-			-package_id $package_id \
-			-file_ids $file_ids \
-			-mime_type $mime_type
-		} err_msg]} {
-		    ns_log Error "intranet-contacts/email.tcl: Error sending mail to [$party email]: $err_msg"
-		}
+		
+		acs_mail_lite::send \
+		    -to_addr [$party email] \
+		    -cc_addr $cc_list \
+		    -bcc_addr $bcc_list \
+		    -from_addr "$from_addr" \
+		    -reply_to "$reply_to_addr" \
+		    -subject "$interpol_subject" \
+		    -body "$interpol_content_body" \
+		    -package_id $package_id \
+		    -file_ids $file_ids \
+		    -mime_type $mime_type
 		
 		# Link the files to all parties
 		if {[exists_and_not_null revision_id]} {
