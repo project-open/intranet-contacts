@@ -3,8 +3,8 @@
 <if @default_names@ not nil>
     <table>
         <tr>
-        <th width=15%> #intranet-contacts.Default_attributes#: </th>
-	<td width=90%> @default_names@</td>
+        <th width="15%"> #intranet-contacts.Default_attributes#: </th>
+	<td width="90%"> @default_names@</td>
 	</tr>
     </table>
     <br>
