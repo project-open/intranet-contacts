@@ -44,7 +44,7 @@ ad_page_contract {
 set title "[_ intranet-contacts.Add_a_${object_type}]"
 
 set context [list $title]
-set current_user_id [ad_get_user_id]
+set current_user_id [ad_conn user_id]
 
 
 # --------------------------------------------------
