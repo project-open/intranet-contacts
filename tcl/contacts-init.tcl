@@ -15,20 +15,19 @@ ad_library {
 nsv_set contacts sweeper_p 0
 ad_schedule_proc -thread t 300 contacts::sweeper
 
-if {[empty_string_p [info procs callback]]} {
-
-    ns_log notice "CONTACTS: callback proc didn't exist so we are adding it here"
-    ad_proc -public callback {
-	-catch:boolean
-	{-impl *}
-	callback
-	args
-    } {
-	Placeholder for contacts to work on 5.1
-    } {
-    }
-}
-
+# if {[empty_string_p [info procs callback]]} {
+#
+#    ns_log notice "CONTACTS: callback proc didn't exist so we are adding it here"
+#    ad_proc -public callback {
+#	-catch:boolean
+#	{-impl *}
+#	callback
+#	args
+#    } {
+#	Placeholder for contacts to work on 5.1
+#    } {
+#    }
+# }
 
 if { [empty_string_p [info procs rel_types::create_role]] } {
 
