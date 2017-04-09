@@ -66,7 +66,7 @@ ad_proc -public contact::oo::import_oo_pdf_using_soffice {
     @return file location of the file if "no_import" has been specified.
 } {
     set pdf_filename "[file rootname $oo_file].pdf"
-    set status [catch {exec -- /usr/bin/java -jar /web/jodconverter-2.2.1/lib/jodconverter-cli-2.2.1.jar $oo_file $pdf_filename} result]
+    set status [catch {im_exec -- /usr/bin/java -jar /web/jodconverter-2.2.1/lib/jodconverter-cli-2.2.1.jar $oo_file $pdf_filename} result]
 
     if { $status == 0 } {
 
@@ -208,7 +208,7 @@ ad_proc -public contact::oo::join_pdf {
     set pdfjoin_bin [parameter::get -parameter "PdfJoinBin" -default "/usr/bin/pdfjoin"]
     set pdf_filename "[ns_tmpnam].pdf"
 
-    catch {eval exec $pdfjoin_bin --outfile $pdf_filename [join $filenames " "]} result
+    catch {eval im_exec $pdfjoin_bin --outfile $pdf_filename [join $filenames " "]} result
     set mime_type "application/pdf"
 
     if {![file exists $pdf_filename]} {
@@ -292,7 +292,7 @@ ad_proc -public contact::oo::change_content {
     # The zip command should replace the content.xml in the zipfile which
     # happens to be the OpenOffice File. 
     foreach filename [array names content_array] {
-	exec zip -j "${dir}/$document_filename" "${dir}/$filename"
+	im_exec zip -j "${dir}/$document_filename" "${dir}/$filename"
     }
 
     # copy odt file

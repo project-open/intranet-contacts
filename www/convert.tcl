@@ -13,7 +13,7 @@ puts $file $page
 flush $file
 close $file
 
-set status [catch {exec -- /bin/sh [acs_package_root_dir contacts]/bin/convert.sh $oo_file } result]
+set status [catch {im_exec -- sh [acs_package_root_dir contacts]/bin/convert.sh $oo_file } result]
 
 if { $status == 0 } {
 
