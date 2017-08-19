@@ -141,8 +141,8 @@ ad_proc -public intranet-contacts::table_and_join_clauses {
         switch $object_type {
             person {
                 # Find the group_id
-                set group_id [im_category_from_id $category_id]
-                append join_clauses " and acs_objects.object_id in (select member_id from group_approved_member_map where group_id = $group_id)"
+                set group_id [im_category_from_id -translate_p 0 $category_id]
+                append join_clauses " and acs_objects.object_id in (select member_id from group_approved_member_map where group_id = '$group_id')"
             } 
             default {
                 append join_clauses " and [$class table_name].[$class type_column] = :category_id"
