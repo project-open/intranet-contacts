@@ -126,7 +126,8 @@ select acs_rel_type__create_type (
         'acs_object', 
         null,
         0, 
-        null
+        null,
+	true
     );
 
 select define_function_args('contact_owner__new','rel_id,rel_type;contact_owner,object_id_one,object_id_two,creation_user,creation_ip');
