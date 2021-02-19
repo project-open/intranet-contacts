@@ -834,7 +834,7 @@ ad_proc -public contact::group::add_member {
         # needs to be added differently since organizations
         # can be part of a group which violates the membership_rel
         # constraint for a group member to be a person see:
-        # http://openacs.org/forums/message-view?message_id=1059049
+        # https://openacs.org/forums/message-view?message_id=1059049
         #
         # The organization_rel behaves exactly like a basic membership_rel
         # and uses the exact same tables, but it allows an organization

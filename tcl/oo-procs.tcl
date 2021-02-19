@@ -458,7 +458,7 @@ ad_proc -public contact::oo::convert_to_pdf_using_jooconverter {
     file, the function will read the content from the file.<br>
     <br>
     Specify webservice_url and timeout for your connection to your running JooConverver webservice (e.g.
-    http://www.example.com:8080/converter/service)<br>
+    https://www.example.com:8080/converter/service)<br>
     <br>
     If everything runs fine, the function will return a PDF document. You can check this, if the returned value
     will start with %PDF- (e.g. %PDF-1.4 will indicate PDF version 1.4). If you get a different return value,
@@ -536,7 +536,7 @@ ad_proc -public contact::oo::convert_to_pdf_using_jooconverter2 {
     file, the function will read the content from the file.<br>
     <br>
     Specify webservice_url and timeout for your connection to your running JooConverver webservice (e.g.
-    http://www.example.com:8080/converter/service)<br>
+    https://www.example.com:8080/converter/service)<br>
     <br>
     If everything runs fine, the function will return a PDF document. You can check this, if the returned value
     will start with %PDF- (e.g. %PDF-1.4 will indicate PDF version 1.4). If you get a different return value,
@@ -694,8 +694,8 @@ ad_proc -public contact::oo::convert_to_pdf_using_jooconverter2 {
         # The transmission is chunked.
         # Chunk size <CR><LF> Message part <CR><LF>
         # End:0<CR><LF>
-	# (2006/11/01/nfl) http://www.html-world.de/program/http_9.php
-	# (2006/11/06/nfl) http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.6.1
+	# (2006/11/01/nfl) https://www.html-world.de/program/http_9.php
+	# (2006/11/06/nfl) https://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.6.1
 	
         set PDF_document ""
 	
